@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bartr</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" type="image/png" href="favicon.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Shadows+Into+Light&family=Roboto:wght@300;400;500&family=Bebas+Neue&family=Special+Elite&display=swap');
+:root{--primary:#cf193f;--secondary:#0056a6;--dark:#1a1a1a;--darker:#0a0a0a;--light:#e8e3d5;--lighter:#f5f2e8;--text-light:#e8e3d5;--text-shadow:0 2px 8px rgba(0,0,0,.8);--transition:.3s ease;
+--line:rgba(0,86,166,.35);--bg2:rgba(0,0,0,.4);--mut:rgba(232,227,213,.7);--blue:#0056a6;--link:#5aa9ff;--bad:#ff6b81;--ok:#3ecf8e}
+html::-webkit-scrollbar{display:none}html{scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:rgba(10,10,10,.8);border-radius:10px}
+::-webkit-scrollbar-thumb{background:#cf193f;border-radius:10px;border:2px solid rgba(10,10,10,.8)}::-webkit-scrollbar-thumb:hover{background:#0056a6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Roboto',sans-serif;background:#0a0f1a;color:var(--text-light);line-height:1.6;overflow-x:hidden}
+h1,h2,h3,h4,h5,h6{font-family:'Audiowide',sans-serif;font-weight:400;letter-spacing:1px;color:var(--light);text-shadow:var(--text-shadow)}
+h2{font-size:1.9rem;margin-bottom:1rem}h3{font-size:1.05rem;margin-bottom:.5rem}
+a{color:var(--link)}.hidden{display:none!important}
+/* NAV */
+.main-nav{position:fixed;top:0;width:100%;background:transparent;z-index:1000;transition:transform .3s ease,background .3s}
+.main-nav.solid{background:rgba(10,15,26,.72);backdrop-filter:blur(14px);border-bottom:1px solid rgba(0,86,166,.25)}
+.main-nav.hide-nav{transform:translateY(-100%)}
+.nav-container{max-width:1400px;margin:0 auto;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.nav-logo{font-size:1.4rem;letter-spacing:2px;color:#0056a6;text-shadow:0 0 15px rgba(0,86,166,.8);font-family:'Audiowide',sans-serif;cursor:pointer}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-link{color:var(--text-light);text-decoration:none;font-size:.9rem;transition:var(--transition);position:relative;letter-spacing:1px;font-family:'Audiowide',sans-serif;background:none;border:0;cursor:pointer}
+.nav-link:hover,.nav-link.on{color:#cf193f}
+.nav-link::after{content:'';position:absolute;bottom:-5px;left:0;width:0;height:2px;background:#cf193f;transition:var(--transition)}
+.nav-link:hover::after,.nav-link.on::after{width:100%}
+.bell{font-size:1rem}.bell::after{display:none}
+.badge{position:absolute;top:-8px;right:-10px;background:#cf193f;color:#fff;border-radius:999px;font:.65rem Roboto,sans-serif;min-width:17px;padding:0 4px;text-align:center}
+.hamburger-btn{background:rgba(207,25,63,.2);color:var(--text-light);padding:.5rem .8rem;border-radius:4px;font-size:1.1rem;border:1px solid #cf193f;cursor:pointer;display:none;align-items:center;justify-content:center}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(10,10,10,.85);backdrop-filter:blur(5px);z-index:9998;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.active{opacity:1;pointer-events:all}
+.sidebar-menu{position:fixed;top:0;right:-400px;width:350px;max-width:90vw;height:100%;background:rgba(26,26,26,.95);backdrop-filter:blur(20px);border-left:2px solid rgba(0,86,166,.3);z-index:9999;padding:2rem;transition:right .4s cubic-bezier(.68,-.55,.265,1.55);overflow:auto}
+.sidebar-menu.active{right:0}
+.sidebar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1rem;border-bottom:2px solid rgba(0,86,166,.3)}
+.sidebar-title{font-size:1.5rem;color:#0056a6;letter-spacing:2px;font-family:'Audiowide',sans-serif}
+.close-sidebar{background:rgba(0,86,166,.2);border:1px solid #0056a6;color:var(--text-light);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;transition:var(--transition)}
+.close-sidebar:hover{background:#cf193f;transform:rotate(90deg)}
+.sidebar-content{display:flex;flex-direction:column;gap:1rem}
+.sidebar-card{display:flex;align-items:center;gap:1.2rem;padding:1.2rem;background:rgba(0,86,166,.15);backdrop-filter:blur(10px);border:1px solid rgba(0,86,166,.3);border-radius:12px;text-decoration:none;color:var(--text-light);transition:all .3s ease}
+.sidebar-card:hover{background:rgba(207,25,63,.25);border-color:#cf193f;transform:translateX(5px);box-shadow:0 5px 20px rgba(207,25,63,.5)}
+.sidebar-card-icon{width:50px;height:50px;background:rgba(0,86,166,.2);border:1px solid #0056a6;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#0056a6}
+.sidebar-card:hover .sidebar-card-icon{background:#cf193f;color:var(--lighter)}
+/* BACKGROUND (fades per view, like main) */
+#bg{position:fixed;inset:0;z-index:0;opacity:0;transition:opacity .8s ease-in-out;pointer-events:none;background:#0d1a2e}
+#bg.active{opacity:1}#bg img{width:100%;height:100%;object-fit:cover;display:block}
+#bg::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(10,15,26,.55),rgba(10,15,26,.7))}
+.section-background{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;transition:opacity .8s ease-in-out;pointer-events:none}
+.section-background.active{opacity:1;z-index:1}
+.section-background::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(10,15,26,.4),rgba(10,15,26,.6))}
+.section-media{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+#how .section-background{background-color:#0d1a2e}#swap .section-background{background-color:#1a0d0d}#join .section-background{background-color:#0a0a1a}
+/* HERO */
+.hero{position:relative;height:100vh;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;background:radial-gradient(ellipse at center,#1a2a1d 0%,#0a0a0a 70%)}
+.hero-media-video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.hero-poster{transition:opacity .8s ease}
+.hero-content{position:relative;z-index:2;text-align:left;max-width:760px;padding:2rem 3rem 2rem 6rem}
+.hero-heading{font-family:'Audiowide',sans-serif;font-size:clamp(2.2rem,6vw,4.6rem);font-weight:400;letter-spacing:2px;margin-bottom:2.5rem;color:#cf193f;text-shadow:0 0 30px rgba(207,25,63,.8),0 2px 8px rgba(0,0,0,.9);line-height:1.1}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
+.hero-button{position:relative;display:inline-flex;align-items:center;justify-content:center;width:220px;height:58px;background:transparent;border:2px solid #0056a6;border-radius:4px;color:var(--light);font-size:1rem;letter-spacing:3px;text-transform:uppercase;cursor:pointer;overflow:hidden;transition:var(--transition);text-decoration:none;font-family:'Audiowide',sans-serif}
+.hero-button::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:rgba(207,25,63,.3);transition:.5s}
+.hero-button:hover::before{left:100%}
+.hero-button:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(207,25,63,.4);border-color:#cf193f}
+.hero-button.red{border-color:#cf193f}.hero-button span{position:relative;z-index:1}
+/* SECTIONS */
+.content-section{position:relative;min-height:80vh;display:flex;align-items:center;padding:4rem 0}
+.container{position:relative;z-index:2;width:100%;max-width:1400px;margin:0 auto;padding:0 2.5rem}
+.section-title{font-size:2.6rem;text-align:center;margin-bottom:2rem;color:#0056a6;text-shadow:0 0 20px rgba(0,86,166,.6),var(--text-shadow);letter-spacing:3px;position:relative;padding-bottom:1rem}
+.section-title::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:120px;height:3px;background:#cf193f;border-radius:2px;box-shadow:0 0 10px rgba(207,25,63,.5)}
+.card-icon{font-size:1.6rem;color:#0056a6;margin-bottom:.6rem}.card:nth-child(even) .card-icon{color:#cf193f}
+/* APP LAYOUT */
+main{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:7rem 1.2rem 3rem;min-height:70vh}
+body.on-landing main{padding:0;min-height:0}
+#v-landing{position:relative;z-index:2}
+.card{background:rgba(255,255,255,.08);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-radius:12px;padding:1.3rem;border:2px solid rgba(0,86,166,.3);box-shadow:0 8px 32px rgba(0,0,0,.3);margin-bottom:1rem;transition:var(--transition)}
+.grid{display:grid;gap:1.2rem;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.grid>.card{margin:0}.grid>.card:nth-child(even){border-color:rgba(207,25,63,.3)}
+.grid>.card:hover{transform:translateY(-5px);box-shadow:0 15px 40px rgba(0,86,166,.4);background:rgba(255,255,255,.12)}
+.two{display:grid;gap:1rem;grid-template-columns:1fr 1fr}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+label{display:block;font-size:.85rem;color:var(--mut);margin-bottom:.8rem}
+input,select,textarea{width:100%;margin-top:.3rem;font-family:'Roboto',sans-serif;font-size:.95rem;color:var(--text-light);background:rgba(0,0,0,.4);border:1px solid rgba(0,86,166,.5);border-radius:6px;padding:.6rem .8rem;outline:none;transition:var(--transition)}
+input:focus,select:focus,textarea:focus{border-color:#cf193f;box-shadow:0 0 10px rgba(207,25,63,.3)}
+select option{background:#1a1a1a}textarea{resize:vertical;min-height:80px}
+input::placeholder,textarea::placeholder{color:rgba(232,227,213,.4)}
+input[type=file]{padding:.4rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}.row>select{width:auto;margin:0}
+.btn{font-family:'Audiowide',sans-serif;font-size:.85rem;cursor:pointer;border:1px solid #0056a6;background:rgba(0,86,166,.2);color:var(--text-light);padding:.5rem 1rem;border-radius:6px;transition:var(--transition)}
+.btn:hover{background:#cf193f;border-color:#cf193f;transform:translateY(-2px)}
+.btn.pri{background:#cf193f;border-color:#cf193f}.btn.pri:hover{background:#0056a6;border-color:#0056a6}
+.btn.ghost{background:transparent}.btn.ghost:hover{background:rgba(207,25,63,.25)}
+.btn.sm{padding:.3rem .7rem;font-size:.75rem}.btn:disabled{opacity:.5;cursor:wait;transform:none}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #5aa9ff;outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.5rem 0}
+.chip{background:rgba(255,255,255,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:.25rem .7rem;font-family:'Audiowide',sans-serif;font-size:.75rem;display:inline-flex;gap:.4rem;align-items:center;color:#111;text-decoration:none;transition:var(--transition)}
+.chip:hover{background:rgba(255,255,255,.88)}
+.chip.teach{border-color:#0056a6}.chip.learn{border-color:#cf193f}
+.chip .muted{color:#444;font-size:.85rem}
+.chip button{background:none;border:0;color:#555;cursor:pointer;font-size:1rem}
+.chip.sug{cursor:pointer;border-style:dashed}.chip.sug:hover{border-color:#cf193f}
+a.chip:hover{border-color:#cf193f}
+.muted{color:var(--mut);font-size:.88rem}
+.muted,.card p,.ci p,.pane .muted,#notif .muted{font-family:'Shadows Into Light',cursive;font-size:1.05rem;letter-spacing:.3px;line-height:1.35}
+.avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;background:rgba(0,0,0,.4);border:2px solid rgba(0,86,166,.5);flex:none}.avatar.lg{width:96px;height:96px}
+.score{font-family:'Audiowide',sans-serif;font-size:1.05rem;color:#cf193f;text-shadow:0 0 14px rgba(207,25,63,.6);white-space:nowrap}
+.bar{height:6px;border-radius:9px;background:rgba(0,0,0,.4);overflow:hidden;margin:.5rem 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#0056a6,#cf193f)}
+.err{color:var(--bad);min-height:1.3em;font-size:.88rem}
+.empty{padding:1.5rem;text-align:center;color:var(--mut);border:1px dashed rgba(0,86,166,.5);border-radius:12px;font-family:'Shadows Into Light',cursive;font-size:1.2rem}
+.spin{padding:1.5rem;text-align:center;color:var(--mut)}
+.spin:before{content:"";display:inline-block;width:14px;height:14px;margin-right:8px;border:2px solid rgba(0,86,166,.4);border-top-color:#cf193f;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+.narrow{max-width:430px;margin:1rem auto}
+#notif{position:fixed;right:1rem;top:4.6rem;width:min(350px,92vw);max-height:60vh;overflow:auto;background:rgba(26,26,26,.96);backdrop-filter:blur(20px);border:1px solid rgba(0,86,166,.4);border-radius:12px;padding:.5rem;z-index:1100;box-shadow:0 12px 40px #0009}
+.n{padding:.6rem;border-radius:8px;cursor:pointer}.n:hover{background:rgba(0,86,166,.2)}.n.un{border-left:3px solid #cf193f}
+.chat{display:grid;grid-template-columns:290px 1fr;gap:1rem;height:70vh}
+@media(max-width:760px){.chat{grid-template-columns:1fr;height:auto}.chat.open #clist{display:none}.chat:not(.open) #cpane{display:none}}
+.pane{background:rgba(255,255,255,.08);backdrop-filter:blur(20px) saturate(180%);border:2px solid rgba(0,86,166,.3);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+#clist{overflow:auto}
+.ci{display:flex;gap:.6rem;padding:.7rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.1);align-items:center}.ci:hover,.ci.on{background:rgba(0,86,166,.2)}
+.ci div{min-width:0;flex:1}.ci p{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mut);font-size:.85rem}
+.dot{width:9px;height:9px;border-radius:50%;background:#666;display:inline-block;margin-right:5px}.dot.on{background:var(--ok)}
+#msgs{flex:1;overflow:auto;padding:1rem;display:flex;flex-direction:column;gap:.4rem;min-height:300px}
+.m{max-width:78%;padding:.5rem .8rem;border-radius:8px;background:rgba(255,255,255,.75);color:#111;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px);overflow-wrap:anywhere}
+.m.me{align-self:flex-end;background:rgba(207,25,63,.6);color:#fff;border-color:rgba(207,25,63,.7)}
+.m small{display:block;opacity:.65;font-size:.7rem}
+.send{display:flex;gap:.5rem;padding:.7rem;border-top:1px solid rgba(255,255,255,.1)}.send input{margin:0}
+.stars button{background:none;border:0;font-size:1.6rem;cursor:pointer;color:rgba(232,227,213,.25)}.stars button.on{color:#ffc857}
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:rgba(26,26,26,.95);backdrop-filter:blur(12px);border:1px solid #0056a6;padding:.7rem 1.1rem;border-radius:8px;z-index:10000}
+/* FOOTER */
+.footer{position:relative;z-index:10;background:rgba(255,255,255,.05);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);text-align:center;overflow:hidden}
+.footer::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#cf193f,#0056a6,#cf193f,transparent)}
+.footer-inner{max-width:900px;margin:0 auto;padding:3.5rem 2rem 2.5rem;display:flex;flex-direction:column;align-items:center;gap:1.6rem}
+.footer-quote-block{display:flex;align-items:center;gap:1.5rem;width:100%;justify-content:center}
+.footer-quote-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(207,25,63,.5));max-width:160px}
+.footer-quote-line:last-child{background:linear-gradient(90deg,rgba(207,25,63,.5),transparent)}
+.footer-quote{font-family:'Bebas Neue',cursive;font-size:1.65rem;letter-spacing:2px;line-height:1.4;color:#0056a6;text-shadow:0 0 30px rgba(0,86,166,.5);max-width:560px}
+.footer-sub-quote{font-family:'Special Elite',cursive;font-size:.95rem;color:rgba(207,25,63,.75);letter-spacing:1.5px;margin:-1rem 0 0;font-style:italic}
+.footer-divider{display:flex;align-items:center;gap:1rem;width:100%;max-width:400px}.footer-divider span{flex:1;height:1px;background:rgba(255,255,255,.1)}.footer-divider i{color:rgba(232,227,213,.25);font-size:.9rem}
+.footer-copy{font-family:'Special Elite',cursive;font-size:.78rem;color:rgba(232,227,213,.35);letter-spacing:1px}
+/* MUSIC */
+#musicBtn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9000;width:44px;height:44px;border-radius:50%;border:2px solid rgba(207,25,63,.6);background:rgba(10,10,10,.55);backdrop-filter:blur(12px);color:#e8e3d5;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s,border-color .3s,background .3s,box-shadow .3s,transform .3s}
+#musicBtn:hover,#musicBtn.playing{opacity:1!important;pointer-events:auto!important}
+#musicBtn:hover{border-color:#cf193f;background:rgba(207,25,63,.2);box-shadow:0 0 18px rgba(207,25,63,.45);transform:scale(1.08)}
+#musicBtn.playing{border-color:#0056a6;box-shadow:0 0 18px rgba(0,86,166,.55)}
+#musicBtn svg{width:17px;height:17px;position:relative;z-index:2;pointer-events:none}
+.music-waves{position:absolute;inset:0;border-radius:50%;pointer-events:none}
+.music-waves .wave{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(0,86,166,.5);opacity:0}
+.music-waves.active .wave{animation:musicPulse 2.2s ease-out infinite}.music-waves.active .w2{animation-delay:.75s}.music-waves.active .w3{animation-delay:1.5s}
+@keyframes musicPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+@media(max-width:992px){.nav-links{display:none}.hamburger-btn{display:flex}.section-title{font-size:2rem}.hero-content{padding:2rem 1.5rem 2rem 2rem}}
+@media(max-width:576px){.container{padding:0 1rem}.nav-container{padding:.8rem 1rem}.hero-button{width:100%}.hero-btns{flex-direction:column;max-width:260px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="on-landing">
+
+<nav class="main-nav" id="mainNav" aria-label="Main">
+  <div class="nav-container">
+    <div class="nav-logo" id="navLogo" role="link" tabindex="0">Bartr</div>
+    <div class="nav-links" id="navLinks"></div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
+  </div>
+</nav>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="sidebar-menu" id="sidebarMenu">
+  <div class="sidebar-header"><div class="sidebar-title">NAVIGATE</div><button class="close-sidebar" id="closeSidebar" aria-label="Close menu"><i class="fas fa-times"></i></button></div>
+  <div class="sidebar-content" id="sideLinks"></div>
+</div>
+<div id="notif" class="hidden" role="dialog" aria-label="Notifications"></div>
+<div id="bg"><img alt="" src=""></div>
+
+<section id="v-landing" class="hidden">
+  <div class="hero" id="hero">
+    <img id="heroPoster" class="hero-media-video hero-poster" src="assets/images/hero-bg.jpg" onerror="this.onerror=null;this.src='assets/images/hero-bg.png'" alt="">
+    <video id="heroVideo" class="hero-media-video" autoplay muted loop playsinline preload="auto" style="opacity:0;transition:opacity .8s ease">
+      <source src="assets/videos/hero-bg.mp4" type="video/mp4">
+    </video>
+    <div class="hero-content">
+      <h1 class="hero-heading">Barter your skills.</h1>
+      <div class="hero-btns"><a href="#" class="hero-button red" data-v="register"><span>Create Account</span></a><a href="#" class="hero-button" data-v="login"><span>Login</span></a></div>
+    </div>
+  </div>
+  <section class="content-section" id="how"><div class="section-background"><img class="section-media" src="assets/images/howitworks-bg.jpg" onerror="this.onerror=null;this.src='assets/images/howitworks-bg.png'" alt=""></div><div class="container">
+    <h2 class="section-title">How Bartr works</h2>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fas fa-list-check"></i></div><h3>List your skills</h3><p>Add what you can teach and what you want to learn. Describe it in your own words and Bartr works out the rest.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-handshake"></i></div><h3>Get matched</h3><p>Bartr finds people who want what you know and know what you want, and tells you why you fit.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-comments"></i></div><h3>Swap and grow</h3><p>Chat in real time, trade lessons, and leave a review when you're done.</p></div>
+    </div>
+  </div></section>
+  <section class="content-section" id="swap"><div class="section-background"><img class="section-media" src="assets/images/swap-bg.jpg" onerror="this.onerror=null;this.src='assets/images/swap-bg.png'" alt=""></div><div class="container">
+    <h2 class="section-title">Swap almost anything</h2>
+    <div class="grid">
+      <div class="card"><div class="card-icon"><i class="fas fa-code"></i></div><h3>Tech and code</h3><p>Python, React, Machine Learning, SQL, Web Development.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-palette"></i></div><h3>Creative</h3><p>Photoshop, Video Editing with Premiere or DaVinci, Guitar, Piano.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-book-open"></i></div><h3>Study</h3><p>Calculus, Statistics, Spanish, French and more.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-microphone"></i></div><h3>Life skills</h3><p>Public Speaking, Writing, Cooking, Yoga.</p></div>
+    </div>
+  </div></section>
+  <section class="content-section" id="join"><div class="section-background"><img class="section-media" src="assets/images/join-bg.jpg" onerror="this.onerror=null;this.src='assets/images/join-bg.png'" alt=""></div><div class="container" style="text-align:center">
+    <h2 class="section-title">Ready to trade?</h2>
+    <div class="hero-btns" style="justify-content:center"><a href="#" class="hero-button red" data-v="register"><span>Create Account</span></a><a href="#" class="hero-button" data-v="login"><span>Login</span></a></div>
+  </div></section>
+</section>
+
+<main>
+<section id="v-login" class="hidden"><div class="card narrow"><h2>Welcome back</h2>
+  <form id="f-login"><label>Email<input name="email" type="email" required autocomplete="email"></label>
+  <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+  <div class="err" id="e-login" role="alert"></div><button class="btn pri" style="width:100%">Log in</button></form>
+  <p class="muted" style="margin-top:.8rem">New here? <a href="#" data-v="register">Create an account</a></p></div></section>
+
+<section id="v-register" class="hidden"><div class="card narrow"><h2>Create your account</h2>
+  <form id="f-register"><label>Name<input name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+  <label>Email<input name="email" type="email" required autocomplete="email"></label>
+  <label>Password (8+ characters)<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+  <div class="err" id="e-register" role="alert"></div><button class="btn pri" style="width:100%">Create account</button></form>
+  <p class="muted" style="margin-top:.8rem">Have an account? <a href="#" data-v="login">Log in</a></p></div></section>
+
+<section id="v-onboarding" class="hidden"><h2>What's your skill swap?</h2>
+  <p class="muted" style="margin-bottom:1rem">Type skills or describe them in a sentence, e.g. "I build websites with React and Node". Use "Suggest with AI" to see what we understood, then click the ones that fit.</p>
+  <div id="ob-editor"></div>
+  <div class="card"><h3>About you (optional)</h3><div id="ob-profile"></div></div>
+  <button class="btn pri" onclick="finishOnboarding()">Find my matches</button></section>
+
+<section id="v-dashboard" class="hidden"></section>
+<section id="v-matches" class="hidden"><div class="row" style="justify-content:space-between;margin-bottom:1rem"><h2 style="margin:0">Your matches</h2><button class="btn" onclick="loadMatches()">Refresh</button></div><div id="matches-list" class="grid"></div></section>
+<section id="v-discover" class="hidden"><h2>Discover people</h2>
+  <form id="f-disc" class="card row"><input name="skill" placeholder="Skill (e.g. Guitar)" aria-label="Skill" style="flex:2;margin:0">
+  <input name="location" placeholder="Location" aria-label="Location" style="flex:2;margin:0">
+  <select name="proficiency" aria-label="Proficiency"><option value="">Any level</option><option>beginner</option><option>intermediate</option><option>advanced</option><option>expert</option></select>
+  <button class="btn pri">Search</button></form><div id="disc-list" class="grid"></div></section>
+<section id="v-profile" class="hidden"></section>
+<section id="v-chat" class="hidden"><div class="chat" id="chatbox">
+  <div class="pane" id="clist" aria-label="Conversations"></div>
+  <div class="pane" id="cpane"><div class="row" style="padding:.7rem;border-bottom:1px solid rgba(255,255,255,.1)"><button class="btn sm ghost" id="back" aria-label="Back to conversations">←</button><strong id="chead">Select a conversation</strong></div>
+  <div id="msgs" aria-live="polite"></div>
+  <form class="send hidden" id="f-send"><input name="content" maxlength="2000" placeholder="Write a message" aria-label="Message" autocomplete="off"><button class="btn pri">Send</button></form></div></div></section>
+<section id="v-settings" class="hidden"><h2>Settings</h2>
+  <div class="card"><h3>Profile photo</h3><div class="row"><div id="pic-prev"></div>
+  <div><input type="file" id="pic-file" accept="image/png,image/jpeg,image/gif,image/webp" aria-label="Choose a profile photo" style="max-width:280px">
+  <div class="row" style="margin-top:.5rem"><button class="btn pri sm" id="pic-up">Upload photo</button><button class="btn ghost sm" id="pic-rm">Remove</button></div>
+  <div class="muted">PNG, JPG, GIF or WebP, up to 2 MB.</div><div class="err" id="e-pic" role="alert"></div></div></div></div>
+  <form id="f-prof" class="card"><h3>Profile</h3>
+  <label>Name<input name="name" required minlength="2" maxlength="80"></label>
+  <label>Bio<textarea name="bio" maxlength="600"></textarea></label>
+  <div class="two"><label>Location<input name="location" maxlength="120"></label><label>Timezone (e.g. Asia/Kolkata)<input name="timezone" maxlength="64"></label></div>
+  <h3 style="margin-top:1rem">Links (all optional)</h3>
+  <div class="two">
+  <label>GitHub<input name="github" maxlength="100" placeholder="username or profile link"></label>
+  <label>LinkedIn<input name="linkedin" maxlength="100" placeholder="username or profile link"></label>
+  <label>Instagram<input name="instagram" maxlength="100" placeholder="username or profile link"></label>
+  <label>Twitter / X<input name="twitter" maxlength="100" placeholder="username or profile link"></label>
+  <label>Telegram<input name="telegram" maxlength="100" placeholder="username or profile link"></label>
+  <label>Discord<input name="discord" maxlength="100" placeholder="username"></label></div>
+  <p class="muted" style="margin-bottom:.8rem">These show on your public profile.</p>
+  <div class="err" id="e-prof" role="alert"></div><button class="btn pri">Save profile</button></form>
+  <div id="set-editor"></div></section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-quote-block"><span class="footer-quote-line"></span><p class="footer-quote">Everyone is a teacher.<br>Everyone is a student.</p><span class="footer-quote-line"></span></div>
+    <p class="footer-sub-quote">— trade what you know for what you want to learn.</p>
+    <div class="footer-divider"><span></span><i class="fas fa-right-left"></i><span></span></div>
+    <p class="footer-copy">&copy; 2026 Bartr</p>
+  </div>
+</footer>
+
+<button id="musicBtn" aria-label="Toggle music"><span class="music-waves" id="musicWaves"><span class="wave w1"></span><span class="wave w2"></span><span class="wave w3"></span></span>
+  <svg id="musicIconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+  <svg id="musicIconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script>
+const API = "http://localhost:8000", WS = "ws://localhost:8000";
+const S = { token: localStorage.getItem("bartr_token"), me: null, ws: null, cid: null, poll: null };
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const picUrl = p => !p ? "" : p.startsWith("/") ? API + p : p;
+const avatar = (u, c = "") => `<img class="avatar ${c}" alt="" src="${esc(picUrl(u.profile_picture) || "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#1b2459"/><text x="48" y="62" font-size="42" text-anchor="middle" fill="#8f9bc4" font-family="sans-serif">' + (u.name || "?")[0] + "</text></svg>"))}">`;
+const fmt = d => new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+const SOC = { github: ["GitHub", "https://github.com/"], linkedin: ["LinkedIn", "https://www.linkedin.com/in/"], instagram: ["Instagram", "https://instagram.com/"], twitter: ["Twitter / X", "https://x.com/"], telegram: ["Telegram", "https://t.me/"], discord: ["Discord", null] };
+const socialLinks = u => { const s = u.socials || {}, a = Object.keys(SOC).filter(k => s[k]).map(k => { const [n, base] = SOC[k], v = s[k]; if (!base) return `<span class="chip">${n}: ${esc(v)}</span>`; const url = /^https?:\/\//i.test(v) ? v : base + encodeURIComponent(v); return `<a class="chip" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${n}</a>`; }); return a.length ? `<h3>Find them on</h3><div class="chips">${a.join("")}</div>` : ""; };
+const stars = r => r ? `★ ${r}` : "No reviews yet";
+const chips = (a, t) => a.length ? a.map(s => `<span class="chip ${t}">${esc(s.name)} <span class="muted">${esc(s.proficiency)}</span></span>`).join("") : '<span class="muted">None yet</span>';
+function toast(t) { const e = $("#toast"); e.textContent = t; e.classList.remove("hidden"); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.add("hidden"), 3000); }
+
+/* ---------- API layer ---------- */
+const MSG = { 413: "That file is too large.", 401: "Your session expired. Please log in again.", 403: "You don't have access to that.", 404: "We couldn't find that.", 409: "That already exists.", 422: "Please check the fields and try again.", 429: "Too many requests. Wait a moment and retry.", 500: "Something went wrong on our side. Try again." };
+async function apiRequest(path, { method = "GET", body } = {}) {
+  let res;
+  try {
+    res = await fetch(API + path, { method, headers: { ...(body instanceof FormData ? {} : { "Content-Type": "application/json" }), ...(S.token ? { Authorization: "Bearer " + S.token } : {}) }, body: body ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined });
+  } catch { throw new Error("Can't reach the server. Is backend.py running on port 8000?"); }
+  let data = null; try { data = await res.json(); } catch {}
+  if (!res.ok) {
+    if (res.status === 401 && S.token) { logout(true); }
+    let d = data && data.detail;
+    if (Array.isArray(d)) d = d.map(x => (x.loc?.slice(-1)[0] || "") + ": " + x.msg).join("; ");
+    throw new Error(d || MSG[res.status] || "Request failed (" + res.status + ").");
+  }
+  return data;
+}
+const login = (email, password) => apiRequest("/api/login", { method: "POST", body: { email, password } });
+const register = (name, email, password) => apiRequest("/api/register", { method: "POST", body: { name, email, password } });
+const getMe = () => apiRequest("/api/me");
+const updateProfile = b => apiRequest("/api/users/me", { method: "PUT", body: b });
+const getSkills = q => apiRequest("/api/skills?q=" + encodeURIComponent(q || ""));
+const analyzeSkills = text => apiRequest("/api/skills/analyze", { method: "POST", body: { text } });
+const updateSkills = (names, type, proficiency) => apiRequest("/api/users/me/skills", { method: "POST", body: { names, type, proficiency } });
+const removeSkill = (id, type) => apiRequest(`/api/users/me/skills/${id}?type=${type}`, { method: "DELETE" });
+const getMatches = () => apiRequest("/api/matches");
+const matchAction = (id, a) => apiRequest(`/api/matches/${id}/${a}`, { method: "POST" });
+const getDiscoverUsers = p => apiRequest("/api/discover?" + new URLSearchParams(p));
+const getUser = id => apiRequest("/api/users/" + id);
+const getConversations = () => apiRequest("/api/conversations");
+const createConversation = user_id => apiRequest("/api/conversations", { method: "POST", body: { user_id } });
+const getMessages = id => apiRequest(`/api/conversations/${id}/messages`);
+const getNotifications = () => apiRequest("/api/notifications");
+const markNotificationRead = id => apiRequest(`/api/notifications/${id}/read`, { method: "POST" });
+const createReview = (id, rating, comment) => apiRequest(`/api/users/${id}/reviews`, { method: "POST", body: { rating, comment } });
+const uploadPicture = file => { const fd = new FormData(); fd.append("file", file); return apiRequest("/api/users/me/picture", { method: "POST", body: fd }); };
+const removePicture = () => apiRequest("/api/users/me/picture", { method: "DELETE" });
+const getReviews = id => apiRequest(`/api/users/${id}/reviews`);
+function sendMessage(content) { if (S.ws && S.ws.readyState === 1) S.ws.send(JSON.stringify({ content })); else toast("Chat is reconnecting. Try again in a moment."); }
+
+/* ---------- Routing ---------- */
+const VIEWS = ["landing", "login", "register", "onboarding", "dashboard", "matches", "discover", "profile", "chat", "settings"];
+function go(v, arg) {
+  if (S.ws && v !== "chat") { S.ws.close(); S.ws = null; }
+  VIEWS.forEach(x => $("#v-" + x).classList.toggle("hidden", x !== v));
+  S.view = v; document.body.classList.toggle("on-landing", v === "landing");
+  if (S._nav !== !!S.me) { S._nav = !!S.me; renderNav(); if (S.me) loadNotifs(); }
+  $("#mainNav").classList.toggle("solid", v !== "landing"); $("#mainNav").classList.remove("hide-nav");
+  document.querySelectorAll("#navLinks [data-v]").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  if (v === "landing") { setBg(null); landingScroll(); } else setBg(BG[v]);
+  $("#notif").classList.add("hidden");
+  ({ dashboard: loadDashboard, matches: loadMatches, discover: loadDiscover, profile: () => loadProfile(arg), chat: () => loadChat(arg), settings: loadSettings, onboarding: loadOnboarding })[v]?.();
+  window.scrollTo(0, 0);
+}
+function logout(silent) { S.token = null; S.me = null; localStorage.removeItem("bartr_token"); clearInterval(S.poll); if (S.ws) S.ws.close(); go("landing"); if (silent) toast("Please log in again."); }
+async function enter(r) {
+  S.token = r.token; localStorage.setItem("bartr_token", r.token); S.me = r.user;
+  clearInterval(S.poll); S.poll = setInterval(loadNotifs, 8000); loadNotifs();
+  go(S.me.teach.length || S.me.learn.length ? "dashboard" : "onboarding");
+}
+const BG = { login: "auth", register: "auth", onboarding: "dashboard", dashboard: "dashboard", matches: "matches", discover: "discover", profile: "settings", chat: "chat", settings: "settings" };
+const BGCOL = { howitworks: "#0d1a2e", auth: "#0a0a1a", dashboard: "#0d1a2e", matches: "#1a0d12", discover: "#0d1220", chat: "#0d1a12", settings: "#1a0a0a" };
+function setBg(name) {
+  const bg = $("#bg"), img = $("img", bg);
+  if (!name) return bg.classList.remove("active");
+  if (img.dataset.n !== name) { img.dataset.n = name; img.onerror = () => { img.onerror = null; img.src = `assets/images/${name}-bg.png`; }; img.src = `assets/images/${name}-bg.jpg`; }
+  bg.style.backgroundColor = BGCOL[name]; bg.classList.add("active");
+}
+function landingScroll() {
+  if (S.view !== "landing") return;
+  const y = window.scrollY, vh = window.innerHeight, hero = $("#hero"), heroBottom = hero.offsetTop + hero.offsetHeight;
+  $("#mainNav").classList.toggle("hide-nav", y > hero.offsetHeight - 100);
+  const bgs = document.querySelectorAll("#v-landing .section-background"), secs = document.querySelectorAll("#v-landing .content-section");
+  if (y < heroBottom - vh * 0.85) { bgs.forEach(b => b.classList.remove("active")); return; }
+  let act = null, max = 0;
+  secs.forEach((sec, i) => {
+    const r = sec.getBoundingClientRect(), vt = Math.max(0, Math.min(r.height, vh - r.top)), vb = Math.max(0, Math.min(r.height, r.bottom)), v = Math.min(vt, vb);
+    if (v > max) { max = v; act = i; }
+  });
+  bgs.forEach((b, i) => b.classList.toggle("active", i === act && act !== null));
+}
+window.addEventListener("scroll", landingScroll, { passive: true }); window.addEventListener("resize", landingScroll);
+const NAVS = [["dashboard", "Home", "fa-house"], ["matches", "Matches", "fa-heart"], ["discover", "Discover", "fa-compass"], ["chat", "Chat", "fa-comments"], ["settings", "Settings", "fa-gear"]];
+function renderNav() {
+  const items = S.me ? NAVS : [["login", "Login", "fa-right-to-bracket"], ["register", "Create Account", "fa-user-plus"]];
+  $("#navLinks").innerHTML = items.map(([v, l]) => `<a href="#" class="nav-link" data-v="${v}">${l}</a>`).join("") +
+    (S.me ? '<button class="nav-link bell" id="bell" aria-label="Notifications"><i class="fas fa-bell"></i><span class="badge hidden" id="badge">0</span></button><a href="#" class="nav-link" data-act="logout">Log out</a>' : "");
+  $("#sideLinks").innerHTML = items.map(([v, l, i]) => `<a href="#" class="sidebar-card" data-v="${v}"><div class="sidebar-card-icon"><i class="fas ${i}"></i></div><div><h4>${l}</h4></div></a>`).join("") +
+    (S.me ? '<a href="#" class="sidebar-card" data-act="logout"><div class="sidebar-card-icon"><i class="fas fa-right-from-bracket"></i></div><div><h4>Log out</h4></div></a>' : "");
+  if ($("#bell")) $("#bell").onclick = () => $("#notif").classList.toggle("hidden");
+}
+const toggleSide = () => { $("#sidebarMenu").classList.toggle("active"); $("#sidebarOverlay").classList.toggle("active"); };
+$("#hamburgerBtn").onclick = $("#closeSidebar").onclick = $("#sidebarOverlay").onclick = toggleSide;
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-v],[data-act]"); if (!a || a.closest("#v-chat")) return;
+  e.preventDefault(); $("#sidebarMenu").classList.remove("active"); $("#sidebarOverlay").classList.remove("active");
+  a.dataset.act === "logout" ? logout() : go(a.dataset.v);
+});
+$("#navLogo").onclick = () => go(S.me ? "dashboard" : "landing");
+$("#navLogo").onkeydown = e => e.key === "Enter" && $("#navLogo").click();
+(() => { const v = $("#heroVideo"), p = $("#heroPoster"); v.addEventListener("playing", () => { v.style.opacity = 1; p.style.opacity = 0; }); })();
+(() => {
+  const btn = $("#musicBtn"), audio = new Audio("assets/audio/music.mp3"); audio.loop = true; audio.volume = 0.6; let on = false;
+  document.addEventListener("mousemove", e => { const near = innerWidth - e.clientX < 90 && innerHeight - e.clientY < 90; btn.style.opacity = near || on ? 1 : 0; btn.style.pointerEvents = near || on ? "auto" : "none"; });
+  btn.onclick = () => { on ? audio.pause() : audio.play().catch(() => {}); on = !on; $("#musicIconPlay").style.display = on ? "none" : "block"; $("#musicIconPause").style.display = on ? "block" : "none"; $("#musicWaves").classList.toggle("active", on); btn.classList.toggle("playing", on); };
+})();
+
+/* ---------- Auth ---------- */
+function formSubmit(id, errId, fn) {
+  $(id).onsubmit = async e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)), b = e.target.querySelector("button:not([type])") || e.target.querySelector("button");
+    $(errId).textContent = ""; b.disabled = true;
+    try { await fn(f); } catch (x) { $(errId).textContent = x.message; } finally { b.disabled = false; }
+  };
+}
+formSubmit("#f-login", "#e-login", async f => enter(await login(f.email, f.password)));
+formSubmit("#f-register", "#e-register", async f => enter(await register(f.name, f.email, f.password)));
+
+/* ---------- Skill editor (onboarding + settings) ---------- */
+function skillEditor(host, onChange) {
+  const lv = '<option>beginner</option><option selected>intermediate</option><option>advanced</option><option>expert</option>';
+  host.innerHTML = ["teach", "learn"].map(t => `<div class="card" data-t="${t}"><h3>${t === "teach" ? "Skills I can teach" : "Skills I want to learn"}</h3>
+    <div class="chips" data-r="have"></div>
+    <label>Skills or a sentence about them<input data-r="txt" maxlength="300" placeholder="${t === "teach" ? "Python, Guitar, or: I build websites with React" : "Calculus, or: I want to learn building websites"}"></label>
+    <div class="row"><select data-r="lvl" aria-label="Proficiency">${lv}</select><button class="btn" data-a="add">Add</button><button class="btn ghost" data-a="ai">Suggest with AI</button></div>
+    <div class="err" data-r="err"></div><div class="chips" data-r="sug"></div></div>`).join("");
+  const draw = () => host.querySelectorAll("[data-t]").forEach(c => {
+    const t = c.dataset.t;
+    $('[data-r=have]', c).innerHTML = S.me[t].length ? S.me[t].map(s => `<span class="chip ${t}">${esc(s.name)} <span class="muted">${esc(s.proficiency)}</span><button aria-label="Remove ${esc(s.name)}" data-rm="${s.skill_id}">×</button></span>`).join("") : '<span class="muted">Nothing added yet</span>';
+  });
+  draw();
+  host.onclick = async e => {
+    const c = e.target.closest("[data-t]"); if (!c) return; const t = c.dataset.t, err = $("[data-r=err]", c); err.textContent = "";
+    const save = async names => { S.me = await updateSkills(names, t, $("[data-r=lvl]", c).value); draw(); onChange && onChange(); };
+    try {
+      if (e.target.dataset.rm) { S.me = await removeSkill(e.target.dataset.rm, t); draw(); onChange && onChange(); }
+      else if (e.target.dataset.a === "add") { const names = $("[data-r=txt]", c).value.split(/[,;\n]/).map(x => x.trim()).filter(Boolean); if (!names.length) return; await save(names); $("[data-r=txt]", c).value = ""; }
+      else if (e.target.dataset.a === "ai") {
+        const v = $("[data-r=txt]", c).value.trim(); if (v.length < 2) return; e.target.disabled = true; e.target.textContent = "Thinking…";
+        const r = await analyzeSkills(v); const box = $("[data-r=sug]", c);
+        box.innerHTML = r.suggestions.length ? r.suggestions.map(s => `<button class="chip sug" data-pick="${esc(s.name)}">+ ${esc(s.name)}</button>`).join("") + (r.ai ? "" : '<span class="muted">AI offline, using built-in matching</span>') : '<span class="muted">No skills found. Try naming them directly.</span>';
+        e.target.disabled = false; e.target.textContent = "Suggest with AI";
+      } else if (e.target.dataset.pick) { await save([e.target.dataset.pick]); e.target.remove(); }
+    } catch (x) { err.textContent = x.message; document.querySelectorAll("[data-a=ai]").forEach(b => { b.disabled = false; b.textContent = "Suggest with AI"; }); }
+  };
+}
+function profileFields(host, id) {
+  host.innerHTML = `<label>Short bio<textarea data-k="bio" maxlength="600"></textarea></label><div class="two"><label>Location<input data-k="location"></label><label>Timezone (e.g. Asia/Kolkata)<input data-k="timezone"></label></div>`;
+  host.querySelectorAll("[data-k]").forEach(i => i.value = S.me[i.dataset.k] || "");
+}
+function loadOnboarding() { skillEditor($("#ob-editor")); profileFields($("#ob-profile")); }
+async function finishOnboarding() {
+  if (!S.me.teach.length || !S.me.learn.length) return toast("Add at least one skill to teach and one to learn.");
+  const b = {}; document.querySelectorAll("#ob-profile [data-k]").forEach(i => i.value && (b[i.dataset.k] = i.value));
+  try { if (Object.keys(b).length) S.me = await updateProfile(b); go("matches"); } catch (x) { toast(x.message); }
+}
+
+/* ---------- Dashboard ---------- */
+async function loadDashboard() {
+  const v = $("#v-dashboard"); v.innerHTML = `<h2>Welcome back, ${esc(S.me.name.split(" ")[0])}</h2>
+  <div class="two"><div class="card"><h3>I can teach</h3><div class="chips">${chips(S.me.teach, "teach")}</div></div><div class="card"><h3>I want to learn</h3><div class="chips">${chips(S.me.learn, "learn")}</div></div></div>
+  <div class="row" style="margin-bottom:1rem"><button class="btn pri" onclick="go('matches')">Find Matches</button></div>
+  <h3>Top matches</h3><div id="d-m" class="grid"><div class="spin">Finding matches</div></div>
+  <h3 style="margin-top:1.2rem">Recent chats</h3><div id="d-c"><div class="spin">Loading</div></div>`;
+  try { const m = await getMatches(); $("#d-m").innerHTML = m.length ? m.slice(0, 3).map(matchCard).join("") : '<div class="empty">No matches yet. Add more skills to find people.</div>'; } catch (x) { $("#d-m").innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+  try { const c = await getConversations(); $("#d-c").innerHTML = c.length ? `<div class="pane">${c.slice(0, 4).map(convItem).join("")}</div>` : '<div class="empty">No conversations yet. Start one from a match.</div>'; } catch (x) { $("#d-c").innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+
+/* ---------- Matches ---------- */
+function matchCard(m) {
+  const u = m.user;
+  return `<article class="card"><div class="row">${avatar(u)}<div style="flex:1"><strong>${esc(u.name)}</strong><div class="muted">${stars(u.rating)} · ${esc(u.location || "")}</div></div><span class="score">${m.score}% Compatible</span></div>
+  <div class="bar" role="img" aria-label="${m.score} percent"><i style="width:${m.score}%"></i></div>
+  <div class="muted">Teaches</div><div class="chips">${chips(u.teach, "teach")}</div><div class="muted">Wants to learn</div><div class="chips">${chips(u.learn, "learn")}</div>
+  <p>${esc(m.reason)}</p>
+  <div class="row"><button class="btn sm" onclick="go('profile',${u.id})">View profile</button><button class="btn sm pri" onclick="startChat(${u.id},${m.id})">Start chat</button>${m.status === "accepted" ? '<span class="chip">Accepted</span>' : `<button class="btn sm ghost" onclick="act(${m.id},'accept')">Accept</button><button class="btn sm ghost" onclick="act(${m.id},'reject')">Pass</button>`}</div></article>`;
+}
+async function loadMatches() {
+  const l = $("#matches-list"); l.innerHTML = '<div class="spin">Finding matches</div>';
+  try { const m = await getMatches(); l.innerHTML = m.length ? m.map(matchCard).join("") : '<div class="empty">No matches yet. Add skills in Settings, then refresh.</div>'; } catch (x) { l.innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+async function act(id, a) { try { await matchAction(id, a); toast(a === "accept" ? "Match accepted" : "Match dismissed"); loadMatches(); } catch (x) { toast(x.message); } }
+async function startChat(uid) { try { const c = await createConversation(uid); go("chat", c.id); } catch (x) { toast(x.message); } }
+
+/* ---------- Discover ---------- */
+async function loadDiscover(e) {
+  const f = Object.fromEntries(new FormData($("#f-disc"))); Object.keys(f).forEach(k => f[k] || delete f[k]);
+  const l = $("#disc-list"); l.innerHTML = '<div class="spin">Searching</div>';
+  try {
+    const r = await getDiscoverUsers(f);
+    l.innerHTML = r.length ? r.map(u => `<article class="card"><div class="row">${avatar(u)}<div style="flex:1"><strong>${esc(u.name)}</strong><div class="muted">${stars(u.rating)} · ${esc(u.location || "")}</div></div>${u.compatibility != null ? `<span class="score">${u.compatibility}%</span>` : ""}</div>
+    <p class="muted">${esc(u.bio || "")}</p><div class="chips">${chips(u.teach, "teach")}${chips(u.learn, "learn")}</div><button class="btn sm" onclick="go('profile',${u.id})">View profile</button></article>`).join("") : '<div class="empty">No one matches those filters.</div>';
+  } catch (x) { l.innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+$("#f-disc").onsubmit = e => { e.preventDefault(); loadDiscover(); };
+
+/* ---------- Profile + reviews ---------- */
+async function loadProfile(id) {
+  const v = $("#v-profile"); v.innerHTML = '<div class="spin">Loading profile</div>';
+  try {
+    const [u, rv] = await Promise.all([getUser(id), getReviews(id)]), own = u.id === S.me.id;
+    v.innerHTML = `<div class="card"><div class="row">${avatar(u, "lg")}<div style="flex:1"><h2>${esc(u.name)}</h2><div class="muted">${esc(u.location || "")} ${u.timezone ? "· " + esc(u.timezone) : ""}</div><div>${stars(rv.average)} <span class="muted">(${rv.count})</span></div></div>${own ? "" : `<button class="btn pri" onclick="startChat(${u.id})">Message</button>`}</div><p>${esc(u.bio || "No bio yet.")}</p>
+    <h3>Teaching</h3><div class="chips">${chips(u.teach, "teach")}</div><h3>Learning</h3><div class="chips">${chips(u.learn, "learn")}</div>${socialLinks(u)}</div>
+    ${own ? "" : `<form class="card" id="f-rev"><h3>Leave a review</h3><div class="stars" role="radiogroup" aria-label="Rating">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-s="${n}" aria-label="${n} stars">★</button>`).join("")}</div><label>Comment<textarea name="comment" maxlength="1000"></textarea></label><div class="err" id="e-rev"></div><button class="btn pri">Submit review</button></form>`}
+    <h3>Reviews</h3>${rv.items.length ? rv.items.map(r => `<div class="card"><strong>${"★".repeat(r.rating)}</strong> <span class="muted">${esc(r.reviewer)}</span><p>${esc(r.comment)}</p></div>`).join("") : '<div class="empty">No reviews yet.</div>'}`;
+    let rating = 0;
+    const fr = $("#f-rev"); if (fr) {
+      fr.onclick = e => { const s = e.target.dataset.s; if (s) { rating = +s; fr.querySelectorAll("[data-s]").forEach(b => b.classList.toggle("on", +b.dataset.s <= rating)); } };
+      fr.onsubmit = async e => { e.preventDefault(); if (!rating) return $("#e-rev").textContent = "Choose a star rating."; try { await createReview(id, rating, fr.comment.value); toast("Review submitted"); loadProfile(id); } catch (x) { $("#e-rev").textContent = x.message; } };
+    }
+  } catch (x) { v.innerHTML = `<div class="err">${esc(x.message)}</div>`; }
+}
+
+/* ---------- Chat ---------- */
+function convItem(c) {
+  const l = c.last_message;
+  return `<div class="ci ${c.id === S.cid ? "on" : ""}" tabindex="0" role="button" onclick="go('chat',${c.id})">${avatar(c.user)}<div><strong><span class="dot ${c.online ? "on" : ""}"></span>${esc(c.user.name)}</strong><p>${l ? esc(l.content) : "No messages yet"}</p></div>${c.unread ? `<span class="badge" style="position:static">${c.unread}</span>` : ""}</div>`;
+}
+const msgHtml = m => `<div class="m ${m.sender_id === S.me.id ? "me" : ""}">${esc(m.content)}<small>${fmt(m.created_at)}${m.sender_id === S.me.id ? (m.read_at ? " · Read" : " · Sent") : ""}</small></div>`;
+async function refreshConvs() { try { const c = await getConversations(); $("#clist").innerHTML = c.length ? c.map(convItem).join("") : '<div class="empty">No conversations yet.<br>Start one from a match.</div>'; return c; } catch (x) { $("#clist").innerHTML = `<div class="err">${esc(x.message)}</div>`; return []; } }
+async function loadChat(cid) {
+  S.cid = cid || null; $("#chatbox").classList.toggle("open", !!cid);
+  $("#clist").innerHTML = '<div class="spin">Loading</div>';
+  const convs = await refreshConvs();
+  $("#back").onclick = () => go("chat");
+  $("#f-send").classList.toggle("hidden", !cid);
+  if (!cid) { $("#chead").textContent = "Select a conversation"; $("#msgs").innerHTML = '<div class="empty">Pick a conversation to start talking.</div>'; return; }
+  const c = convs.find(x => x.id === cid); $("#chead").textContent = c ? c.user.name : "Chat";
+  $("#msgs").innerHTML = '<div class="spin">Loading messages</div>';
+  try {
+    const ms = await getMessages(cid); const box = $("#msgs");
+    box.innerHTML = ms.length ? ms.map(msgHtml).join("") : '<div class="empty">Say hello 👋</div>'; box.scrollTop = box.scrollHeight;
+  } catch (x) { $("#msgs").innerHTML = `<div class="err">${esc(x.message)}</div>`; return; }
+  S.ws = new WebSocket(`${WS}/ws/${cid}?token=${encodeURIComponent(S.token)}`);
+  S.ws.onmessage = e => {
+    const m = JSON.parse(e.data); if (m.type === "error") return toast(m.detail);
+    const box = $("#msgs"); if (box.querySelector(".empty")) box.innerHTML = "";
+    box.insertAdjacentHTML("beforeend", msgHtml(m)); box.scrollTop = box.scrollHeight; refreshConvs();
+    if (m.sender_id !== S.me.id) getMessages(cid);
+  };
+  S.ws.onclose = ev => { if (ev.code >= 4400) toast("Can't join this chat."); };
+}
+$("#f-send").onsubmit = e => { e.preventDefault(); const i = e.target.content, v = i.value.trim(); if (!v) return; sendMessage(v); i.value = ""; };
+
+/* ---------- Notifications ---------- */
+async function loadNotifs() {
+  try {
+    const r = await getNotifications(); S.notifs = r.items;
+    if ($("#badge")) { $("#badge").textContent = r.unread; $("#badge").classList.toggle("hidden", !r.unread); }
+    $("#notif").innerHTML = r.items.length ? r.items.map(n => `<div class="n ${n.is_read ? "" : "un"}" tabindex="0" onclick="readNotif(${n.id},'${n.type}')"><strong>${esc(n.title)}</strong><div class="muted">${esc(n.body)}</div></div>`).join("") : '<div class="empty">No notifications yet.</div>';
+  } catch {}
+}
+async function readNotif(id, type) { try { await markNotificationRead(id); } catch {} await loadNotifs(); $("#notif").classList.add("hidden"); go(type === "message" ? "chat" : type === "match" ? "matches" : "settings"); }
+
+
+/* ---------- Settings ---------- */
+function loadSettings() {
+  const f = $("#f-prof"); ["name", "bio", "location", "timezone"].forEach(k => f[k].value = S.me[k] || "");
+  Object.keys(SOC).forEach(k => f[k].value = (S.me.socials || {})[k] || "");
+  const prev = () => $("#pic-prev").innerHTML = avatar(S.me, "lg"); prev();
+  const err = $("#e-pic"), fi = $("#pic-file"); err.textContent = "";
+  $("#pic-up").onclick = async () => {
+    const file = fi.files[0]; err.textContent = "";
+    if (!file) return err.textContent = "Choose an image first.";
+    if (file.size > 2 * 1024 * 1024) return err.textContent = "That image is over 2 MB. Choose a smaller one.";
+    try { $("#pic-up").disabled = true; S.me = await uploadPicture(file); fi.value = ""; prev(); toast("Photo updated"); } catch (x) { err.textContent = x.message; } finally { $("#pic-up").disabled = false; }
+  };
+  $("#pic-rm").onclick = async () => { try { S.me = await removePicture(); prev(); toast("Photo removed"); } catch (x) { err.textContent = x.message; } };
+  skillEditor($("#set-editor"));
+}
+formSubmit("#f-prof", "#e-prof", async f => { Object.keys(f).forEach(k => { if (k !== "name" && !f[k]) f[k] = ""; }); S.me = await updateProfile(f); toast("Profile saved"); });
+
+/* ---------- Boot ---------- */
+(async () => {
+  if (!S.token) return go("landing");
+  try { S.me = await getMe(); clearInterval(S.poll); S.poll = setInterval(loadNotifs, 8000); loadNotifs(); go("dashboard"); } catch (x) { S.token = null; go("landing"); if (!/session|log in/i.test(x.message)) toast(x.message); }
+})();
+</script>
+</body>
+</html>
